@@ -1267,7 +1267,7 @@ namespace Harness {
             return normalized;
         }
 
-        export function minimalDiagnosticsToString(diagnostics: ts.Diagnostic[]) {
+        export function minimalDiagnosticsToString(diagnostics: ReadonlyArray<ts.Diagnostic>) {
             return ts.formatDiagnostics(diagnostics, { getCanonicalFileName, getCurrentDirectory: () => "", getNewLine: () => Harness.IO.newLine() });
         }
 

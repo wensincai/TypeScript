@@ -135,7 +135,7 @@ class ProjectRunner extends RunnerBase {
             let errors = ts.getPreEmitDiagnostics(program);
 
             const emitResult = program.emit();
-            errors = ts.concatenate(errors, emitResult.diagnostics);
+            ts.addRange(errors, emitResult.diagnostics);
             const sourceMapData = emitResult.sourceMaps;
 
             // Clean up source map data that will be used in baselining
@@ -422,10 +422,16 @@ class ProjectRunner extends RunnerBase {
         }
 
         function getErrorsBaseline(compilerResult: CompileProjectFilesResult) {
-            const inputFiles = ts.map(compilerResult.configFileSourceFiles.concat(
-                compilerResult.program ?
-                    ts.filter(compilerResult.program.getSourceFiles(), sourceFile => !Harness.isDefaultLibraryFile(sourceFile.fileName)) :
-                    []),
+            const inputSourceFiles = compilerResult.configFileSourceFiles.slice();
+            if (compilerResult.program) {
+                for (const sourceFile of compilerResult.program.getSourceFiles()) {
+                    if (!Harness.isDefaultLibraryFile(sourceFile.fileName)) {
+                        inputSourceFiles.push(sourceFile);
+                    }
+                }
+            }
+
+            const inputFiles = ts.map(inputSourceFiles,
                 sourceFile => <Harness.Compiler.TestFile>{
                     unitName: ts.isRootedDiskPath(sourceFile.fileName) ?
                         RunnerBase.removeFullPaths(sourceFile.fileName) :
